@@ -3,7 +3,7 @@ pagetitle: "Fragrance Journal"
 format:
   html:
     page-layout: full
-    embed-resources: false
+    embed-resources: true
     toc: false
 ---
 
