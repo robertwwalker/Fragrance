@@ -1,6 +1,6 @@
 ---
 title: "Wear Journal"
-pagetitle: "Wear Journal"
+pagetitle: "Fragrance Journal"
 format:
   html:
     page-layout: full
