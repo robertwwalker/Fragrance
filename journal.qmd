@@ -1,5 +1,4 @@
 ---
-title: "Wear Journal"
 pagetitle: "Fragrance Journal"
 format:
   html:
@@ -112,7 +111,9 @@ else:
                 out.append('<div class="wj-notes">' + E(n) + '</div>')
             out.append('</div>')
 
-        out.append('</div>')
+        out.append('</div>')      # closes wj-card
+
+    out.append('</div>')          # ← closes wj-wrap
 
 print(''.join(out))
 ```
