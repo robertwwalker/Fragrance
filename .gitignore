@@ -5,3 +5,5 @@
 .quarto/
 *.quarto_ipynb*index_files/
 journal_files/
+index.html
+journal.html
