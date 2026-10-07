@@ -1,0 +1,1 @@
+git add .github/workflows/render.yml && git commit -m "Add render Action" && git push
