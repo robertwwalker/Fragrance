@@ -114,7 +114,6 @@ else:
 
         out.append('</div>')
 
-out.append('</div>')
 print(''.join(out))
 ```
 
