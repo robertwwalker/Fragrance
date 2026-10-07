@@ -7,7 +7,6 @@ format:
     toc: false
 ---
 
-
 ```{python}
 #| echo: false
 #| output: asis
@@ -113,11 +112,10 @@ else:
 
         out.append('</div>')      # closes wj-card
 
-    out.append('</div>')          # ← closes wj-wrap
+    out.append('</div>')          # closes wj-wrap
 
 print(''.join(out))
 ```
-
 
 ```{=html}
 <style>
@@ -163,6 +161,23 @@ body{ font-family:'Inter','Segoe UI',system-ui,sans-serif;
 .wj-empty{ color:var(--muted); font-style:italic; }
 .wj-none{ background:var(--card); border:1px solid var(--line); border-radius:18px;
           padding:2rem; text-align:center; color:var(--muted); }
-</style>
-```
 
+/* ── Embed mode: only applied when this page is framed ── */
+html.wj-embed body{ background:transparent !important; }
+html.wj-embed .wj-wrap{ max-width:none; padding:.4rem 1.1rem 1.6rem; }
+html.wj-embed .wj-hero{ padding:.7rem 1rem .3rem; }
+html.wj-embed .wj-hero h1{ font-size:1.7rem; margin-bottom:.2rem; }
+html.wj-embed .wj-back{ display:none !important; }
+html.wj-embed .wj-sum{ margin:1rem 0 1.4rem; }
+html.wj-embed .wj-card{ margin-bottom:1.1rem; }
+</style>
+
+<script>
+(function(){
+  // Runs only when this page is framed inside index.html.
+  // A standalone visit to journal.html is left untouched.
+  if (window.self === window.top) return;
+  document.documentElement.classList.add('wj-embed');
+})();
+</script>
+```
