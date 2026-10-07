@@ -1,3 +1,91 @@
+---
+title: "A Fragrance of the Day Selector"
+format:
+  html:
+    page-layout: full
+    embed-resources: true
+---
+
+```{python}
+#| echo: false
+#| output: asis
+#
+# DATA SOURCES (both must live in the same folder as this .qmd):
+#   fragrances.csv  — your collection catalog (one row per bottle)
+#   wear_log.csv    — your wear journal (one row per wear)
+#
+# To update:
+#   1. Edit fragrances.csv and/or wear_log.csv
+#   2. Run:  quarto render index.qmd
+#   The rebuilt HTML embeds the new data; no JS edits needed.
+#
+# Pipe-separated list columns: seasons, top_notes, heart_notes, base_notes
+#   e.g.  seasons = Fall|Winter      top_notes = Saffron|Rose|Bergamot
+#
+import csv, json, sys, os
+
+def _list(s):
+    if not s or not str(s).strip():
+        return []
+    return [x.strip() for x in str(s).split('|') if x.strip()]
+
+def _num(s, as_float=False):
+    if s is None or not str(s).strip():
+        return None
+    try:
+        return float(s) if as_float else int(float(s))
+    except (ValueError, TypeError):
+        return None
+
+fragrances = []
+try:
+    with open('fragrances.csv', newline='', encoding='utf-8') as fh:
+        for row in csv.DictReader(fh):
+            pyr = {
+                'top':   _list(row.get('top_notes',   '')),
+                'heart': _list(row.get('heart_notes', '')),
+                'base':  _list(row.get('base_notes',  ''))
+            }
+            f = {'name': row['name'].strip(), 'maker': row['maker'].strip()}
+            for field in ['concentration','tier','status','notes_raw','projection',
+                          'perfumer','scraped_url','url_status','time','fragram']:
+                f[field] = row.get(field, '').strip()
+            for field, af in [('longevity_hours', False), ('sillage', False),
+                               ('overall_rating',  True),  ('launch_year', False)]:
+                f[field] = _num(row.get(field, ''), af)
+            f['seasons'] = _list(row.get('seasons', ''))
+            f['pyramid'] = pyr
+            note = row.get('note', '').strip()
+            if note:
+                f['note'] = note
+            fragrances.append(f)
+except FileNotFoundError:
+    print('<script>console.error("[SOTD] fragrances.csv not found — '
+          'place it next to index.qmd and re-render.");</script>')
+
+print('<script>window.FRAGRANCES = ' +
+      json.dumps(fragrances, ensure_ascii=False) + ';</script>')
+
+# ── Wear log: committed rows, handed to JS so history survives a browser wipe ──
+wear_log = []
+try:
+    with open('wear_log.csv', newline='', encoding='utf-8') as fh:
+        for row in csv.DictReader(fh):
+            if not (row.get('name') or '').strip():
+                continue
+            w = {(k or '').strip(): (v or '').strip() for k, v in row.items() if k}
+            for fld in ['sprays', 'temp_f', 'longevity_obs_h', 'sillage_obs', 'ts']:
+                w[fld] = _num(w.get(fld, ''), False)
+            w['rating_today'] = _num(w.get('rating_today', ''), True)
+            wear_log.append(w)
+except FileNotFoundError:
+    pass   # first run: no log yet
+
+print('<script>window.WEAR_LOG = ' +
+      json.dumps(wear_log, ensure_ascii=False) + ';</script>')
+```
+
+```{=html}
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -746,76 +834,7 @@ body{
     a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
   }
-  // ── Wear-log helpers (required by markWorn() and init()) ──────────────
-  function slug(s){
-    return String(s || '').toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
-  }
-  function wearId(date, name, maker){
-    return date + '-' + slug(name) + '-' + slug(maker).slice(0, 14);
-  }
-  function persistHistory(){
-    try { localStorage.setItem('sotd-history', JSON.stringify(history)); } catch(e){}
-  }
-  function readPanel(){
-    const g = function(id){
-      const el = document.getElementById(id);
-      return el ? el.value.trim() : '';
-    };
-    return {
-      occasion:        g('w-occasion'),
-      sprays:          g('w-sprays'),
-      rating_today:    g('w-rating'),
-      longevity_obs_h: g('w-longevity'),
-      sillage_obs:     g('w-sillage'),
-      notes:           g('w-notes')
-    };
-  }
-  function clearPanel(){
-    ['w-occasion','w-sprays','w-rating','w-longevity','w-sillage','w-notes']
-      .forEach(function(id){
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
-  }
-  function mergeLogs(){
-    const seen = {}, out = [];
-    function add(h){
-      if (!h || !h.name || !h.date) return;
-      const id = h.wear_id || wearId(h.date, h.name, h.maker || '');
-      if (seen[id]) return;
-      seen[id] = true;
-      h.wear_id = id;
-      out.push(h);
-    }
-    (window.WEAR_LOG || []).forEach(add);   // committed rows first
-    history.forEach(add);                    // browser rows fill the gaps
-    out.sort(function(a,b){ return (b.ts || 0) - (a.ts || 0); });
-    history = out;
-  }
-  const WEAR_COLS = ['wear_id','date','name','maker','occasion','sprays','temp_f','weather',
-                     'rating_today','longevity_obs_h','sillage_obs','would_rewear','notes','ts'];
-  function csvCell(v){
-    if (v == null) return '';
-    const s = String(v);
-    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  }
-  function exportWearLog(){
-    const rows = history.slice().sort(function(a,b){
-      return (a.date || '').localeCompare(b.date || '') || ((a.ts || 0) - (b.ts || 0));
-    });
-    const lines = [WEAR_COLS.join(',')];
-    rows.forEach(function(h){
-      lines.push(WEAR_COLS.map(function(c){ return csvCell(h[c]); }).join(','));
-    });
-    const blob = new Blob([lines.join('\n') + '\n'], {type:'text/csv;charset=utf-8'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'wear_log.csv';
-    a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
-  }
+
   function markWorn(){
     if (!state.current) return;
 
@@ -987,3 +1006,4 @@ body{
   }
 })();
 </script>
+```
