@@ -1,5 +1,5 @@
 ---
-title: "A Fragrance of the Day Selector"
+pagetitle: "Scent of the Day"
 format:
   html:
     page-layout: full
