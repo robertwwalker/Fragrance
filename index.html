@@ -3246,6 +3246,112 @@ margin:.45rem 0 .2rem; }
 .wj-none{ background:var(--card); border:1px solid var(--line); border-radius:18px;
 padding:2rem; text-align:center; color:var(--muted); }
 </style>
+<pre class="{python}"><code>#| echo: false
+#| output: asis
+import csv, html, collections, datetime
+
+def rd(path):
+    try:
+        with open(path, newline=&#39;&#39;, encoding=&#39;utf-8&#39;) as fh:
+            return [{(k or &#39;&#39;).strip(): (v or &#39;&#39;).strip()
+                     for k, v in r.items() if k} for r in csv.DictReader(fh)]
+    except FileNotFoundError:
+        return []
+
+def num(s):
+    try:    return float(s)
+    except (TypeError, ValueError): return None
+
+def dstr(s):
+    try:    return datetime.date.fromisoformat(s).strftime(&#39;%a %d %b %Y&#39;)
+    except Exception: return s or &#39;—&#39;
+
+E = html.escape
+log = [r for r in rd(&#39;wear_log.csv&#39;) if r.get(&#39;name&#39;)]
+cat = {r[&#39;name&#39;]: r for r in rd(&#39;fragrances.csv&#39;) if r.get(&#39;name&#39;)}
+
+groups = collections.OrderedDict()
+for r in log:
+    groups.setdefault((r[&#39;name&#39;], r.get(&#39;maker&#39;, &#39;&#39;)), []).append(r)
+for k in groups:
+    groups[k].sort(key=lambda r: (r.get(&#39;date&#39;, &#39;&#39;), r.get(&#39;ts&#39;, &#39;&#39;)), reverse=True)
+groups = collections.OrderedDict(
+    sorted(groups.items(), key=lambda kv: kv[1][0].get(&#39;date&#39;, &#39;&#39;), reverse=True))
+
+out = []
+out.append(&#39;&lt;div class=&quot;wj-wrap&quot;&gt;&#39;)
+out.append(&#39;&lt;header class=&quot;wj-hero&quot;&gt;&lt;h1&gt;Wear Journal&lt;/h1&gt;&#39;
+           &#39;&lt;p&gt;Personal observations · one row per wear&lt;/p&gt;&#39;
+           &#39;&lt;a class=&quot;wj-back&quot; href=&quot;index.html&quot;&gt;← Back to the selector&lt;/a&gt;&lt;/header&gt;&#39;)
+
+if not log:
+    out.append(&#39;&lt;div class=&quot;wj-none&quot;&gt;No wears logged yet. Mark a fragrance as worn &#39;
+               &#39;on the selector, then download and commit &lt;code&gt;wear_log.csv&lt;/code&gt;.&lt;/div&gt;&#39;)
+else:
+    dates = sorted(r.get(&#39;date&#39;, &#39;&#39;) for r in log if r.get(&#39;date&#39;))
+    out.append(&#39;&lt;div class=&quot;wj-sum&quot;&gt;&#39;)
+    for big, small in [(str(len(log)), &#39;wears logged&#39;),
+                       (str(len(groups)), &#39;fragrances worn&#39;),
+                       (dstr(dates[0]), &#39;first entry&#39;),
+                       (dstr(dates[-1]), &#39;latest entry&#39;)]:
+        out.append(&#39;&lt;div class=&quot;wj-stat&quot;&gt;&lt;strong&gt;&#39; + E(big) + &#39;&lt;/strong&gt;&lt;small&gt;&#39;
+                   + E(small) + &#39;&lt;/small&gt;&lt;/div&gt;&#39;)
+    out.append(&#39;&lt;/div&gt;&#39;)
+
+    for (name, maker), wears in groups.items():
+        claimed = cat.get(name, {})
+        rt = [num(w.get(&#39;rating_today&#39;, &#39;&#39;)) for w in wears]
+        rt = [x for x in rt if x is not None]
+        lo = [num(w.get(&#39;longevity_obs_h&#39;, &#39;&#39;)) for w in wears]
+        lo = [x for x in lo if x is not None]
+
+        out.append(&#39;&lt;div class=&quot;wj-card&quot;&gt;&#39;)
+        out.append(&#39;&lt;h2&gt;&#39; + E(name) + &#39;&lt;/h2&gt;&#39;)
+        out.append(&#39;&lt;div class=&quot;wj-maker&quot;&gt;&#39; + E(maker) + &#39;&lt;/div&gt;&#39;)
+
+        out.append(&#39;&lt;div class=&quot;wj-obs&quot;&gt;&#39;)
+        out.append(&#39;&lt;span class=&quot;wj-badge&quot;&gt;&#39; + str(len(wears)) + &#39; wear&#39;
+                   + (&#39;&#39; if len(wears) == 1 else &#39;s&#39;) + &#39;&lt;/span&gt;&#39;)
+        if rt:
+            out.append(&#39;&lt;span class=&quot;wj-badge&quot;&gt;your avg &#39;
+                       + str(round(sum(rt)/len(rt), 1)) + &#39; / 5&lt;/span&gt;&#39;)
+        if lo:
+            obs = sum(lo)/len(lo)
+            out.append(&#39;&lt;span class=&quot;wj-badge&quot;&gt;obs &#39;
+                       + str(round(obs, 1)) + &#39; h&lt;/span&gt;&#39;)
+            cl = num(claimed.get(&#39;longevity_hours&#39;, &#39;&#39;))
+            if cl:
+                d = obs - cl
+                cls = &#39;hi&#39; if d &gt; 0.5 else (&#39;lo&#39; if d &lt; -0.5 else &#39;&#39;)
+                out.append(&#39;&lt;span class=&quot;wj-badge &#39; + cls + &#39;&quot;&gt;vs claimed &#39;
+                           + (&#39;%+.1f&#39; % d) + &#39; h&lt;/span&gt;&#39;)
+        cw = num(claimed.get(&#39;overall_rating&#39;, &#39;&#39;))
+        if cw:
+            out.append(&#39;&lt;span class=&quot;wj-badge&quot;&gt;crowd &#39;
+                       + str(round(cw, 1)) + &#39;&lt;/span&gt;&#39;)
+        out.append(&#39;&lt;/div&gt;&#39;)
+
+        for w in wears:
+            facts = []
+            if w.get(&#39;occasion&#39;): facts.append(E(w[&#39;occasion&#39;]))
+            if w.get(&#39;sprays&#39;):   facts.append(E(w[&#39;sprays&#39;]) + &#39; sprays&#39;)
+            if w.get(&#39;temp_f&#39;):   facts.append(E(w[&#39;temp_f&#39;]) + &#39;°F&#39;)
+            if w.get(&#39;weather&#39;):  facts.append(E(w[&#39;weather&#39;]))
+            if w.get(&#39;rating_today&#39;): facts.append(&#39;rated &#39; + E(w[&#39;rating_today&#39;]))
+            if w.get(&#39;longevity_obs_h&#39;): facts.append(E(w[&#39;longevity_obs_h&#39;]) + &#39; h&#39;)
+            out.append(&#39;&lt;div class=&quot;wj-entry&quot;&gt;&#39;)
+            out.append(&#39;&lt;div class=&quot;wj-date&quot;&gt;&#39; + E(dstr(w.get(&#39;date&#39;, &#39;&#39;))) + &#39;&lt;/div&gt;&#39;)
+            if facts:
+                out.append(&#39;&lt;div class=&quot;wj-facts&quot;&gt;&#39; + &#39; · &#39;.join(facts) + &#39;&lt;/div&gt;&#39;)
+            n = (w.get(&#39;notes&#39;) or &#39;&#39;).strip()
+            if n:
+                out.append(&#39;&lt;div class=&quot;wj-notes&quot;&gt;&#39; + E(n) + &#39;&lt;/div&gt;&#39;)
+            out.append(&#39;&lt;/div&gt;&#39;)
+
+        out.append(&#39;&lt;/div&gt;&#39;)
+
+out.append(&#39;&lt;/div&gt;&#39;)
+print(&#39;&#39;.join(out))</code></pre>
 
 </main>
 <!-- /main column -->
