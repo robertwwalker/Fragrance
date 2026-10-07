@@ -35,11 +35,24 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-     - name: Render index
+      - name: Render index
         run: quarto render index.qmd
 
       - name: Render journal
         run: quarto render journal.qmd
+
+      - name: Verify outputs
+        run: |
+          for f in index.html journal.html; do
+            if [ -f "$f" ]; then
+              echo "✅ $f ($(wc -c < "$f") bytes)"
+            else
+              echo "❌ $f MISSING"
+              exit 1
+            fi
+          done
+          grep -q "wj-sum\|wj-none" journal.html \
+            || { echo "❌ journal chunk did not run — check the fence"; exit 1; }
 
       - name: Commit rendered HTML
         uses: stefanzweifel/git-auto-commit-action@v7
