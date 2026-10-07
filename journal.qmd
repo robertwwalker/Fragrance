@@ -1,9 +1,11 @@
 ---
 title: "Wear Journal"
+pagetitle: "Wear Journal"
 format:
   html:
     page-layout: full
-    embed-resources: true
+    embed-resources: false
+    toc: false
 ---
 
 
