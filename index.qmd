@@ -390,10 +390,6 @@ body{
         Open the full journal ↗
       </a>
     </div>
-    <div class="journal-frame-wrap">
-      <iframe id="journal-frame" src="journal.html" title="Wear Journal"
-              loading="lazy"></iframe>
-    </div>
   </section>
 </div>
 
