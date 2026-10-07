@@ -1,1 +1,45 @@
-git add .github/workflows/render.yml && git commit -m "Add render Action" && git push
+name: Render site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*.qmd'
+      - '*.csv'
+      - '.github/workflows/render.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: render-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install Jupyter kernel
+        run: pip install jupyter
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render
+        run: quarto render index.qmd journal.qmd
+
+      - name: Commit rendered HTML
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: 'Auto-render site [skip ci]'
+          file_pattern: '*.html'
