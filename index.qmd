@@ -63,6 +63,23 @@ except FileNotFoundError:
 
 print('<script>window.FRAGRANCES = ' +
       json.dumps(fragrances, ensure_ascii=False) + ';</script>')
+# ── Wear log: committed rows, handed to JS so history survives a browser wipe ──
+wear_log = []
+try:
+    with open('wear_log.csv', newline='', encoding='utf-8') as fh:
+        for row in csv.DictReader(fh):
+            if not (row.get('name') or '').strip():
+                continue
+            w = {(k or '').strip(): (v or '').strip() for k, v in row.items() if k}
+            for fld in ['sprays', 'temp_f', 'longevity_obs_h', 'sillage_obs', 'ts']:
+                w[fld] = _num(w.get(fld, ''), False)
+            w['rating_today'] = _num(w.get('rating_today', ''), True)
+            wear_log.append(w)
+except FileNotFoundError:
+    pass   # first run: no log yet
+
+print('<script>window.WEAR_LOG = ' +
+      json.dumps(wear_log, ensure_ascii=False) + ';</script>')
 ```
 
 ```{=html}
@@ -252,6 +269,31 @@ body{
   .pyramid{ grid-template-columns:1fr; }
   .frag-name{ font-size:1.9rem; }
 }
+.wear-panel{
+  margin:1.25rem 0 0; padding:1.1rem 1.15rem;
+  background:#faf6ee; border:1px solid var(--line); border-radius:16px;
+}
+.wear-panel-title{
+  font-size:.7rem; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--muted); font-weight:600; margin-bottom:.75rem;
+}
+.wear-fields{ display:flex; flex-wrap:wrap; gap:.7rem; }
+.wear-fields label, .wear-notes-label{
+  display:flex; flex-direction:column; gap:.28rem;
+  font-size:.72rem; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--muted); font-weight:600; flex:1 1 120px;
+}
+.wear-fields input, .wear-notes-label textarea{
+  font-family:'Inter',system-ui,sans-serif; font-size:.9rem; font-weight:400;
+  text-transform:none; letter-spacing:normal; color:var(--ink);
+  background:#fff; border:1px solid var(--line); border-radius:10px;
+  padding:.5rem .65rem; outline:none;
+}
+.wear-fields input:focus, .wear-notes-label textarea:focus{
+  border-color:var(--accent); box-shadow:0 0 0 3px rgba(169,111,47,.13);
+}
+.wear-notes-label{ margin-top:.8rem; flex-basis:100%; }
+.wear-notes-label textarea{ resize:vertical; line-height:1.45; }
 </style>
 
 <div class="sotd-wrap">
@@ -310,6 +352,10 @@ body{
   <div class="history">
     <h3>Recently worn</h3>
     <div id="history-list"></div>
+    <div class="actions-row" style="margin-top:1rem">
+  <button id="btn-export-log">⬇ Download wear log (CSV)</button>
+  <span class="muted" id="log-count"></span>
+</div>
   </div>
 </div>
 
@@ -637,11 +683,22 @@ body{
     html += pyramidHTML(f.pyramid);
 
     if (f.perfumer) html += '<div class="frag-perfumer"><span class="lbl">Perfumer</span>' + esc(f.perfumer) + '</div>';
-
+html += '<div class="wear-panel">';
+html += '<div class="wear-panel-title">Log this wear</div>';
+html += '<div class="wear-fields">';
+html += '<label>Occasion<input id="w-occasion" type="text" placeholder="work, dinner, hike"></label>';
+html += '<label>Sprays<input id="w-sprays" type="number" min="1" max="20" step="1" placeholder="2"></label>';
+html += '<label>Your rating<input id="w-rating" type="number" min="1" max="5" step="0.5" placeholder="4.5"></label>';
+html += '<label>Longevity (h)<input id="w-longevity" type="number" min="0" max="24" step="0.5" placeholder="8"></label>';
+html += '<label>Sillage<input id="w-sillage" type="number" min="1" max="5" step="1" placeholder="4"></label>';
+html += '</div>';
+html += '<label class="wear-notes-label">Observations';
+html += '<textarea id="w-notes" rows="3" placeholder="How did it wear? Projection, drydown, how it moved through the day, compliments…"></textarea>';
+html += '</label>';
+html += '</div>';
     html += '<div class="frag-actions">';
     if (f.scraped_url) html += '<a class="frag-link" href="' + esc(f.scraped_url) + '" target="_blank" rel="noopener">View on Fragrantica ↗</a>';
-    html += '<button class="frag-wear" type="button">✔ Mark as worn today</button>';
-    html += '</div>';
+html += '<button class="frag-wear" type="button">✔ Mark as worn + save notes</button>';    html += '</div>';
 
     cardEl.innerHTML = html;
     const wearBtn = cardEl.querySelector('.frag-wear');
@@ -677,27 +734,61 @@ body{
   }
   function renderHistory(){
     const recents = history.slice(0, 8);
+    const cnt = document.getElementById('log-count');
+    if (cnt) cnt.textContent = history.length + ' wear' + (history.length === 1 ? '' : 's') + ' logged';
     if (!recents.length){
       historyEl.innerHTML = '<span class="muted">Nothing marked as worn yet.</span>';
       return;
     }
     let out = '';
     recents.forEach(function(h){
-      out += '<span class="hist-chip"><strong>' + esc(h.name) + '</strong><span class="hist-date">' + esc(h.date) + '</span></span>';
+      const tip = h.notes ? ' title="' + esc(h.notes) + '"' : '';
+      const dot = h.notes ? ' 📝' : '';
+      out += '<span class="hist-chip"' + tip + '><strong>' + esc(h.name) + '</strong>' + dot +
+             '<span class="hist-date">' + esc(h.date) + '</span></span>';
     });
     historyEl.innerHTML = out;
   }
   function markWorn(){
     if (!state.current) return;
-    const today = todayKey();
-    history = history.filter(function(h){ return h.date !== today; });
-    history.push({ name: state.current.name, maker: state.current.maker, date: today, ts: Date.now() });
-    history.sort(function(a,b){ return b.ts - a.ts; });
-    history = history.slice(0, 50);
-    try { localStorage.setItem('sotd-history', JSON.stringify(history)); } catch(e){}
-    renderHistory();
-  }
 
+    const f     = state.current;
+    const today = todayKey();
+    const id    = wearId(today, f.name, f.maker);
+    const p     = readPanel();
+    const wx    = weatherState || {};
+
+    // Replace only THIS fragrance's entry for today.
+    // The old code filtered on `date` alone, so wearing a second scent
+    // in the same day silently deleted the first one.
+    history = history.filter(function(h){ return h.wear_id !== id; });
+
+    history.push({
+      wear_id:         id,
+      date:            today,
+      name:            f.name,
+      maker:           f.maker,
+      occasion:        p.occasion,
+      sprays:          p.sprays,
+      temp_f:          (wx.temperature_2m != null) ? Math.round(wx.temperature_2m) : '',
+      weather:         (wx.weathercode    != null) ? wxDesc(wx.weathercode).lbl    : '',
+      rating_today:    p.rating_today,
+      longevity_obs_h: p.longevity_obs_h,
+      sillage_obs:     p.sillage_obs,
+      would_rewear:    '',
+      notes:           p.notes,
+      ts:              Date.now()
+    });
+
+    history.sort(function(a,b){ return (b.ts || 0) - (a.ts || 0); });
+    // NOTE: the old `history = history.slice(0, 50);` cap is intentionally removed.
+    // At one row per wear that cap discarded history after ~7 weeks.
+
+    persistHistory();
+    renderHistory();
+    clearPanel();
+  }
+  
   // ── Filter chip events ────────────────────────────────────────────────
   seasonChips.forEach(function(c){
     c.addEventListener('click', function(){
@@ -807,6 +898,8 @@ body{
       ? (FRAGRANCES.find(function(x){ return x.name === todayEntry.name; }) || pickDaily())
       : pickDaily();
     render(f);
+    mergeLogs();
+      document.getElementById('btn-export-log').addEventListener('click', exportWearLog);
     renderHistory();
     setMode('daily');
 

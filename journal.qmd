@@ -1,0 +1,164 @@
+---
+title: "Wear Journal"
+format:
+  html:
+    page-layout: full
+    embed-resources: true
+---
+
+```{=html}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{ --bg1:#f6f1e7; --bg2:#ece3d2; --card:#fffdf8; --ink:#2c2a26;
+       --muted:#8a8378; --accent:#a96f2f; --line:#e4dccd;
+       --shadow:0 20px 45px rgba(80,60,30,.12); }
+*{ box-sizing:border-box; }
+body{ font-family:'Inter','Segoe UI',system-ui,sans-serif;
+      background:linear-gradient(160deg,var(--bg1),var(--bg2));
+      color:var(--ink); margin:0; }
+.wj-wrap{ max-width:900px; margin:0 auto; padding:1rem 1.25rem 4rem; }
+.wj-hero{ text-align:center; padding:2.5rem 1rem .5rem; }
+.wj-hero h1{ font-family:'Playfair Display',Georgia,serif; font-size:3rem; margin:0 0 .4rem; }
+.wj-hero p{ color:var(--muted); margin:0; }
+.wj-back{ display:inline-block; margin-top:.9rem; color:var(--accent);
+          text-decoration:none; font-weight:600; font-size:.88rem; }
+.wj-sum{ display:flex; flex-wrap:wrap; gap:.8rem; margin:1.5rem 0 2rem; }
+.wj-stat{ flex:1 1 130px; background:var(--card); border:1px solid var(--line);
+          border-radius:14px; padding:.9rem 1rem; text-align:center;
+          box-shadow:var(--shadow); }
+.wj-stat strong{ display:block; font-size:1.35rem; }
+.wj-stat small{ color:var(--muted); font-size:.68rem; letter-spacing:.11em;
+                text-transform:uppercase; }
+.wj-card{ background:var(--card); border:1px solid var(--line); border-radius:22px;
+          box-shadow:var(--shadow); padding:1.6rem 1.8rem; margin-bottom:1.5rem; }
+.wj-card h2{ font-family:'Playfair Display',Georgia,serif; font-size:1.7rem;
+             margin:0 0 .15rem; }
+.wj-maker{ color:var(--accent); letter-spacing:.09em; text-transform:uppercase;
+           font-size:.74rem; font-weight:600; margin-bottom:.7rem; }
+.wj-obs{ display:flex; flex-wrap:wrap; gap:.5rem; margin:.6rem 0 1.1rem; }
+.wj-badge{ padding:.26rem .7rem; border-radius:999px; font-size:.75rem;
+           font-weight:600; border:1px solid var(--line); background:#faf6ee; }
+.wj-badge.hi{ background:#e7f0e2; color:#3f6b3a; border-color:#cfe0c8; }
+.wj-badge.lo{ background:#f7e3d6; color:#a05526; border-color:#eed3c0; }
+.wj-entry{ border-top:1px solid var(--line); padding:.95rem 0 .5rem; }
+.wj-entry:first-of-type{ border-top:none; }
+.wj-date{ font-weight:700; font-size:.9rem; }
+.wj-facts{ color:var(--muted); font-size:.79rem; margin:.18rem 0 .5rem; }
+.wj-notes{ font-size:.94rem; line-height:1.55; white-space:pre-wrap;
+           border-left:3px solid var(--line); padding-left:.85rem;
+           margin:.45rem 0 .2rem; }
+.wj-empty{ color:var(--muted); font-style:italic; }
+.wj-none{ background:var(--card); border:1px solid var(--line); border-radius:18px;
+          padding:2rem; text-align:center; color:var(--muted); }
+</style>
+```
+
+
+```{=python}
+#| echo: false
+#| output: asis
+import csv, html, collections, datetime
+
+def rd(path):
+    try:
+        with open(path, newline='', encoding='utf-8') as fh:
+            return [{(k or '').strip(): (v or '').strip()
+                     for k, v in r.items() if k} for r in csv.DictReader(fh)]
+    except FileNotFoundError:
+        return []
+
+def num(s):
+    try:    return float(s)
+    except (TypeError, ValueError): return None
+
+def dstr(s):
+    try:    return datetime.date.fromisoformat(s).strftime('%a %d %b %Y')
+    except Exception: return s or '—'
+
+E = html.escape
+log = [r for r in rd('wear_log.csv') if r.get('name')]
+cat = {r['name']: r for r in rd('fragrances.csv') if r.get('name')}
+
+groups = collections.OrderedDict()
+for r in log:
+    groups.setdefault((r['name'], r.get('maker', '')), []).append(r)
+for k in groups:
+    groups[k].sort(key=lambda r: (r.get('date', ''), r.get('ts', '')), reverse=True)
+groups = collections.OrderedDict(
+    sorted(groups.items(), key=lambda kv: kv[1][0].get('date', ''), reverse=True))
+
+out = []
+out.append('<div class="wj-wrap">')
+out.append('<header class="wj-hero"><h1>Wear Journal</h1>'
+           '<p>Personal observations · one row per wear</p>'
+           '<a class="wj-back" href="index.html">← Back to the selector</a></header>')
+
+if not log:
+    out.append('<div class="wj-none">No wears logged yet. Mark a fragrance as worn '
+               'on the selector, then download and commit <code>wear_log.csv</code>.</div>')
+else:
+    dates = sorted(r.get('date', '') for r in log if r.get('date'))
+    out.append('<div class="wj-sum">')
+    for big, small in [(str(len(log)), 'wears logged'),
+                       (str(len(groups)), 'fragrances worn'),
+                       (dstr(dates[0]), 'first entry'),
+                       (dstr(dates[-1]), 'latest entry')]:
+        out.append('<div class="wj-stat"><strong>' + E(big) + '</strong><small>'
+                   + E(small) + '</small></div>')
+    out.append('</div>')
+
+    for (name, maker), wears in groups.items():
+        claimed = cat.get(name, {})
+        rt = [num(w.get('rating_today', '')) for w in wears]
+        rt = [x for x in rt if x is not None]
+        lo = [num(w.get('longevity_obs_h', '')) for w in wears]
+        lo = [x for x in lo if x is not None]
+
+        out.append('<div class="wj-card">')
+        out.append('<h2>' + E(name) + '</h2>')
+        out.append('<div class="wj-maker">' + E(maker) + '</div>')
+
+        out.append('<div class="wj-obs">')
+        out.append('<span class="wj-badge">' + str(len(wears)) + ' wear'
+                   + ('' if len(wears) == 1 else 's') + '</span>')
+        if rt:
+            out.append('<span class="wj-badge">your avg '
+                       + str(round(sum(rt)/len(rt), 1)) + ' / 5</span>')
+        if lo:
+            obs = sum(lo)/len(lo)
+            out.append('<span class="wj-badge">obs '
+                       + str(round(obs, 1)) + ' h</span>')
+            cl = num(claimed.get('longevity_hours', ''))
+            if cl:
+                d = obs - cl
+                cls = 'hi' if d > 0.5 else ('lo' if d < -0.5 else '')
+                out.append('<span class="wj-badge ' + cls + '">vs claimed '
+                           + ('%+.1f' % d) + ' h</span>')
+        cw = num(claimed.get('overall_rating', ''))
+        if cw:
+            out.append('<span class="wj-badge">crowd '
+                       + str(round(cw, 1)) + '</span>')
+        out.append('</div>')
+
+        for w in wears:
+            facts = []
+            if w.get('occasion'): facts.append(E(w['occasion']))
+            if w.get('sprays'):   facts.append(E(w['sprays']) + ' sprays')
+            if w.get('temp_f'):   facts.append(E(w['temp_f']) + '°F')
+            if w.get('weather'):  facts.append(E(w['weather']))
+            if w.get('rating_today'): facts.append('rated ' + E(w['rating_today']))
+            if w.get('longevity_obs_h'): facts.append(E(w['longevity_obs_h']) + ' h')
+            out.append('<div class="wj-entry">')
+            out.append('<div class="wj-date">' + E(dstr(w.get('date', ''))) + '</div>')
+            if facts:
+                out.append('<div class="wj-facts">' + ' · '.join(facts) + '</div>')
+            n = (w.get('notes') or '').strip()
+            if n:
+                out.append('<div class="wj-notes">' + E(n) + '</div>')
+            out.append('</div>')
+
+        out.append('</div>')
+
+out.append('</div>')
+print(''.join(out))
+```
