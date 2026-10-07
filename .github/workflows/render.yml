@@ -45,14 +45,14 @@ jobs:
         run: |
           for f in index.html journal.html; do
             if [ -f "$f" ]; then
-              echo "✅ $f ($(wc -c < "$f") bytes)"
+              echo "OK  $f ($(wc -c < "$f") bytes)"
             else
-              echo "❌ $f MISSING"
+              echo "MISSING  $f"
               exit 1
             fi
           done
           grep -q "wj-sum\|wj-none" journal.html \
-            || { echo "❌ journal chunk did not run — check the fence"; exit 1; }
+            || { echo "journal chunk did not run - check the fence"; exit 1; }
 
       - name: Commit rendered HTML
         uses: stefanzweifel/git-auto-commit-action@v7
