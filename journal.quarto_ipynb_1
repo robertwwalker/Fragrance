@@ -2,12 +2,12 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "ded24716",
+   "id": "e7760f77",
    "metadata": {},
    "source": [
     "---\n",
     "title: \"Wear Journal\"\n",
-    "pagetitle: \"Wear Journal\"\n",
+    "pagetitle: \"Fragrance Journal\"\n",
     "format:\n",
     "  html:\n",
     "    page-layout: full\n",
@@ -19,14 +19,14 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "86818412",
+   "id": "f953ccc8",
    "metadata": {},
    "outputs": [
     {
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "<div class=\"wj-wrap\"><header class=\"wj-hero\"><h1>Wear Journal</h1><p>Personal observations · one row per wear</p><a class=\"wj-back\" href=\"index.html\">← Back to the selector</a></header><div class=\"wj-sum\"><div class=\"wj-stat\"><strong>10</strong><small>wears logged</small></div><div class=\"wj-stat\"><strong>9</strong><small>fragrances worn</small></div><div class=\"wj-stat\"><strong>Sun 30 Aug 2026</strong><small>first entry</small></div><div class=\"wj-stat\"><strong>Wed 07 Oct 2026</strong><small>latest entry</small></div></div><div class=\"wj-card\"><h2>Moustache EDP</h2><div class=\"wj-maker\">Rochas</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">your avg 4.5 / 5</span><span class=\"wj-badge\">obs 5.0 h</span><span class=\"wj-badge lo\">vs claimed -2.0 h</span><span class=\"wj-badge\">crowd 4.4</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Wed 07 Oct 2026</div><div class=\"wj-facts\">home and work · 4 sprays · 50°F · Overcast · rated 4.5 · 5 h</div><div class=\"wj-notes\">Lovely open, settles into a very nice soft dry down.  Mostly a test of the logging.</div></div></div><div class=\"wj-card\"><h2>Le Sel d&#x27;Issey EDP</h2><div class=\"wj-maker\">Issey Miyake</div><div class=\"wj-obs\"><span class=\"wj-badge\">2 wears</span><span class=\"wj-badge\">crowd 4.1</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Sun 04 Oct 2026</div></div><div class=\"wj-entry\"><div class=\"wj-date\">Wed 09 Sep 2026</div></div></div><div class=\"wj-card\"><h2>L&#x27;Eau d&#x27;Issey Pour Homme</h2><div class=\"wj-maker\">Issey Miyake</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.1</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Sun 20 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Torino 21</h2><div class=\"wj-maker\">Xerjoff</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.6</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Wed 16 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Supremacy Not Only Intense</h2><div class=\"wj-maker\">Afnan</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.4</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Fri 11 Sep 2026</div></div></div><div class=\"wj-card\"><h2>L&#x27;Air du Désert Marocain</h2><div class=\"wj-maker\">Tauer Perfumes</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.7</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Thu 10 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Encre Noire</h2><div class=\"wj-maker\">Lalique</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.5</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Thu 03 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Strike Black</h2><div class=\"wj-maker\">Assaf</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.2</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Wed 02 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Shaheen Silver</h2><div class=\"wj-maker\">Lattafa</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.2</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Sun 30 Aug 2026</div></div></div></div>\n"
+      "<div class=\"wj-wrap\"><header class=\"wj-hero\"><h1>Wear Journal</h1><p>Personal observations · one row per wear</p><a class=\"wj-back\" href=\"index.html\">← Back to the selector</a></header><div class=\"wj-sum\"><div class=\"wj-stat\"><strong>10</strong><small>wears logged</small></div><div class=\"wj-stat\"><strong>9</strong><small>fragrances worn</small></div><div class=\"wj-stat\"><strong>Sun 30 Aug 2026</strong><small>first entry</small></div><div class=\"wj-stat\"><strong>Wed 07 Oct 2026</strong><small>latest entry</small></div></div><div class=\"wj-card\"><h2>Moustache EDP</h2><div class=\"wj-maker\">Rochas</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">your avg 4.5 / 5</span><span class=\"wj-badge\">obs 5.0 h</span><span class=\"wj-badge lo\">vs claimed -2.0 h</span><span class=\"wj-badge\">crowd 4.4</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Wed 07 Oct 2026</div><div class=\"wj-facts\">home and work · 4 sprays · 50°F · Overcast · rated 4.5 · 5 h</div><div class=\"wj-notes\">Lovely open, settles into a very nice soft dry down.  Mostly a test of the logging.</div></div></div><div class=\"wj-card\"><h2>Le Sel d&#x27;Issey EDP</h2><div class=\"wj-maker\">Issey Miyake</div><div class=\"wj-obs\"><span class=\"wj-badge\">2 wears</span><span class=\"wj-badge\">crowd 4.1</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Sun 04 Oct 2026</div></div><div class=\"wj-entry\"><div class=\"wj-date\">Wed 09 Sep 2026</div></div></div><div class=\"wj-card\"><h2>L&#x27;Eau d&#x27;Issey Pour Homme</h2><div class=\"wj-maker\">Issey Miyake</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.1</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Sun 20 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Torino 21</h2><div class=\"wj-maker\">Xerjoff</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.6</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Wed 16 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Supremacy Not Only Intense</h2><div class=\"wj-maker\">Afnan</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.4</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Fri 11 Sep 2026</div></div></div><div class=\"wj-card\"><h2>L&#x27;Air du Désert Marocain</h2><div class=\"wj-maker\">Tauer Perfumes</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.7</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Thu 10 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Encre Noire</h2><div class=\"wj-maker\">Lalique</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.5</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Thu 03 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Strike Black</h2><div class=\"wj-maker\">Assaf</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.2</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Wed 02 Sep 2026</div></div></div><div class=\"wj-card\"><h2>Shaheen Silver</h2><div class=\"wj-maker\">Lattafa</div><div class=\"wj-obs\"><span class=\"wj-badge\">1 wear</span><span class=\"wj-badge\">crowd 4.2</span></div><div class=\"wj-entry\"><div class=\"wj-date\">Sun 30 Aug 2026</div></div></div>\n"
      ]
     }
    ],
@@ -135,13 +135,12 @@
     "\n",
     "        out.append('</div>')\n",
     "\n",
-    "out.append('</div>')\n",
     "print(''.join(out))"
    ]
   },
   {
    "cell_type": "markdown",
-   "id": "1cbd1b8e",
+   "id": "7a7ffda6",
    "metadata": {},
    "source": [
     "```{=html}\n",

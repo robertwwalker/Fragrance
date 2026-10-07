@@ -6,7 +6,7 @@
       "source": [
         "---\n",
         "title: \"Wear Journal\"\n",
-        "pagetitle: \"Wear Journal\"\n",
+        "pagetitle: \"Fragrance Journal\"\n",
         "format:\n",
         "  html:\n",
         "    page-layout: full\n",
@@ -14,7 +14,7 @@
         "    toc: false\n",
         "---\n"
       ],
-      "id": "7fbfe393"
+      "id": "cac9b2a6"
     },
     {
       "cell_type": "code",
@@ -124,10 +124,9 @@
         "\n",
         "        out.append('</div>')\n",
         "\n",
-        "out.append('</div>')\n",
         "print(''.join(out))"
       ],
-      "id": "f1206fe7",
+      "id": "76529676",
       "execution_count": null,
       "outputs": []
     },
@@ -182,7 +181,7 @@
         "</style>\n",
         "```\n"
       ],
-      "id": "2bc746e0"
+      "id": "f76a2df6"
     }
   ],
   "metadata": {
