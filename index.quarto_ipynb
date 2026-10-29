@@ -12,7 +12,7 @@
         "    embed-resources: true\n",
         "---"
       ],
-      "id": "5f9fc69e"
+      "id": "071840ee"
     },
     {
       "cell_type": "code",
@@ -95,7 +95,7 @@
         "print('<script>window.WEAR_LOG = ' +\n",
         "      json.dumps(wear_log, ensure_ascii=False) + ';</script>')"
       ],
-      "id": "3ef3be52",
+      "id": "99c6e21b",
       "execution_count": null,
       "outputs": []
     },
@@ -1093,7 +1093,7 @@
         "</script>\n",
         "```"
       ],
-      "id": "40cb78fb"
+      "id": "0630a5b7"
     }
   ],
   "metadata": {
